@@ -12,6 +12,8 @@ MeUltrasonicSensor ultraSensor(PORT_3); /* Ultrasonic module can ONLY be connect
 int btbufN = 0;
 char btbuf[10];
 long lastInfo = 0;
+long distance = 0;
+long prevdistance = 0;
 
 void setup() {
 
@@ -48,6 +50,26 @@ void loop() {
 }
 
 void sendBlueToothData()  {
+   long dist = ultraSensor.distanceCm();
+   if (dist != 400) {
+    distance = dist;
+   }
+   /*
+   if ( abs(distance - prevdistance) < 10) {
+     if (distance < 15) {
+      digitalWrite(A3, HIGH);
+      motor3.run(250);
+      motor4.run(250);
+      delay(1500);
+      motor3.stop();
+      motor4.stop();
+     } else {
+      digitalWrite(A3, LOW);
+     }
+   }
+   prevdistance = distance;
+*/
+ 
  static long previousMillis = 0;                             
  long currentMillis = millis();
  if(currentMillis - previousMillis > 1000) {   // send data back to smartphone
@@ -60,12 +82,11 @@ void sendBlueToothData()  {
    
 
    mySerial.print((char)STX);
-/*   mySerial.print("0000");
+   mySerial.print("0000");
    mySerial.print( digitalRead(A3) ? "1" : "0" );
-   mySerial.print( digitalRead(A2) ? "1" : "0" );*/
-   //mySerial.print((char)0x1);
-   
-   mySerial.print( ultraSensor.distanceCm() );
+   mySerial.print( digitalRead(A2) ? "1" : "0" );
+   mySerial.print((char)0x1);
+   mySerial.print( distance );
    mySerial.print("cm");
    mySerial.print((char)0x4);
    
@@ -94,6 +115,15 @@ void process() {
       m2 = 255;
     } else if (m2 < -254) {
       m2 = -254;
+    }
+    double dist = ultraSensor.distanceCm();
+
+//Serial.print(m1); Serial.print(" "); Serial.print(m2); Serial.print(" ");
+//Serial.println( distance );
+    if (distance < 15 && m1>-50 && m2>-50) {
+  //    Serial.println("STOP");
+      m1 = 0; 
+      m2 = 0;
     }
 
     if (abs(m1) < 20) {
